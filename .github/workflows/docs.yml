@@ -1,0 +1,56 @@
+name: Deploy Vedrock documentation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout docs repository
+        uses: actions/checkout@v6
+
+      - name: Checkout Vedrock
+        uses: actions/checkout@v6
+        with:
+          repository: bedrock-v/Vedrock
+          ref: stable
+          path: vedrock
+
+      - name: Set up Vedrock toolchain
+        uses: ./vedrock/.github/actions/setup-v
+
+      - name: Generate documentation
+        working-directory: vedrock
+        run: v doc -m -f html . -o ./docs
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: vedrock/docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
