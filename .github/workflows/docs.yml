@@ -32,6 +32,8 @@ jobs:
 
       - name: Set up Vedrock toolchain
         uses: ./vedrock/.github/actions/setup-v
+        env:
+          VEDROCK_ROOT: ${{ github.workspace }}/vedrock
 
       - name: Generate documentation
         working-directory: vedrock
